@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>File Copy & Rename Tool | Batch Processor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f5 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Main application card */
+    .app-container {
+      max-width: 1400px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(2px);
+      border-radius: 2.5rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    /* header */
+    .tool-header {
+      background: #1e2c3a;
+      padding: 1.5rem 2rem;
+      color: white;
+    }
+
+    .tool-header h1 {
+      font-weight: 600;
+      font-size: 1.8rem;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tool-header p {
+      opacity: 0.75;
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    /* main content grid */
+    .main-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding: 2rem 2rem;
+    }
+
+    /* settings row (3 inputs) */
+    .settings-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      background: #ffffffdd;
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1.5rem 1.8rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e9edf2;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .input-group label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #2c3e4e;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 1rem;
+      background: #fefefe;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    /* action buttons row */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1rem 1.5rem;
+      border: 1px solid #eef2f8;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      border: none;
+      background: #f1f5f9;
+      padding: 0.7rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .btn-primary {
+      background: #0f172a;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .btn-success {
+      background: #2c6e2f;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #1f4f21;
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: #e11d48;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #be123c;
+    }
+
+    /* destination indicator */
+    .dest-status {
+      background: #f1f5f9;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: monospace;
+    }
+
+    /* uploaded files panel */
+    .files-panel {
+      background: white;
+      border-radius: 1.5rem;
+      border: 1px solid #eef2f8;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 1.8rem;
+      background: #fcfcfd;
+      border-bottom: 1px solid #eef2f8;
+    }
+
+    .panel-header h3 {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .badge {
+      background: #e2e8f0;
+      padding: 0.2rem 0.7rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .file-table-wrapper {
+      overflow-x: auto;
+      padding: 0 0.2rem;
+    }
+
+    .file-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .file-table th {
+      text-align: left;
+      padding: 1rem 1.2rem;
+      background: #f9fafb;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .file-table td {
+      padding: 0.9rem 1.2rem;
+      border-top: 1px solid #edf2f7;
+      vertical-align: middle;
+    }
+
+    .file-name {
+      font-weight: 500;
+      word-break: break-all;
+    }
+
+    .file-size {
+      color: #475569;
+      font-family: monospace;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #f97316;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.1s;
+      padding: 0 6px;
+    }
+
+    .remove-btn:hover {
+      color: #dc2626;
+      transform: scale(1.1);
+    }
+
+    .empty-files {
+      text-align: center;
+      padding: 2.5rem;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .process-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem 1.8rem 1.8rem;
+      background: #ffffff;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 1rem; }
+      .main-grid { padding: 1rem; }
+      .settings-panel { flex-direction: column; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .btn-group { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="tool-header">
+    <h1>📁 Batch Copy & Rename Studio</h1>
+    <p>Select files → choose destination folder → auto‑rename & copy (prefix + sequential numbers)</p>
+  </div>
+
+  <div class="main-grid">
+    <!-- Input parameters -->
+    <div class="settings-panel">
+      <div class="input-group">
+        <label>🏁 START NUMBER *</label>
+        <input type="number" id="startNumber" value="1" step="1" placeholder="e.g., 1" required>
+      </div>
+      <div class="input-group">
+        <label>📈 INCREMENT VALUE *</label>
+        <input type="number" id="incrementValue" value="1" step="1" placeholder="e.g., 1" required>
+      </div>
+      <div class="input-group">
+        <label>🏷️ PREFIX (optional)</label>
+        <input type="text" id="prefix" value="EMP00" placeholder="e.g., std00_">
+      </div>
+    </div>
+
+    <!-- Action controls -->
+    <div class="action-bar">
+      <div class="btn-group">
+        <button id="selectFilesBtn" class="btn btn-primary">📂 Select Files</button>
+        <button id="selectDestinationBtn" class="btn btn-outline">📁 Select Destination</button>
+      </div>
+      <div id="destinationIndicator" class="dest-status">
+        ⚠️ No destination selected
+      </div>
+    </div>
+
+    <!-- Uploaded files panel (table style) -->
+    <div class="files-panel">
+      <div class="panel-header">
+        <h3>📎 Uploaded Files <span id="fileCountBadge" class="badge">0</span></h3>
+        <button id="clearAllFilesBtn" class="btn" style="background:#fee2e2; padding:0.4rem 1rem;">🗑️ Clear all</button>
+      </div>
+      <div class="file-table-wrapper">
+        <table class="file-table" id="fileTable">
+          <thead>
+            <tr><th>#</th><th>File Name</th><th>Size</th><th>Action</th></tr>
+          </thead>
+          <tbody id="fileTableBody">
+            <tr class="empty-files"><td colspan="4">📭 No files selected. Click "Select Files" to add.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Process button -->
+    <div class="process-footer">
+      <button id="processBtn" class="btn btn-success" style="padding:0.9rem 2.2rem; font-size:1rem;">⚡ PROCESS & RENAME</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- DOM Elements ----------
+  const startNumberInput = document.getElementById('startNumber');
+  const incrementValueInput = document.getElementById('incrementValue');
+  const prefixInput = document.getElementById('prefix');
+  const selectFilesBtn = document.getElementById('selectFilesBtn');
+  const selectDestinationBtn = document.getElementById('selectDestinationBtn');
+  const processBtn = document.getElementById('processBtn');
+  const clearAllFilesBtn = document.getElementById('clearAllFilesBtn');
+  const fileTableBody = document.getElementById('fileTableBody');
+  const fileCountBadge = document.getElementById('fileCountBadge');
+  const destinationIndicator = document.getElementById('destinationIndicator');
+
+  // ---------- Global State ----------
+  let selectedFiles = [];        // Array of File objects
+  let directoryHandle = null;    // FileSystemDirectoryHandle from showDirectoryPicker
+  let destinationName = null;     // store directory display name
+
+  // Helper: format file size
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  // Render uploaded files table (cards style via table)
+  function renderFileTable() {
+    if (!fileTableBody) return;
+    if (selectedFiles.length === 0) {
+      fileTableBody.innerHTML = `<tr class="empty-files"><td colspan="4">📭 No files selected. Click "Select Files" to add.</td></tr>`;
+      fileCountBadge.innerText = '0';
+      return;
+    }
+    fileCountBadge.innerText = selectedFiles.length;
+    let html = '';
+    selectedFiles.forEach((file, idx) => {
+      html += `
+        <tr>
+          <td style="width: 45px; font-weight:500;">${idx+1}</td>
+          <td class="file-name" title="${escapeHtml(file.name)}">${truncateFilename(file.name, 45)}</td>
+          <td class="file-size">${formatFileSize(file.size)}</td>
+          <td style="width: 70px; text-align:center;">
+            <button class="remove-btn" data-index="${idx}" title="Remove file">✖</button>
+          </td>
+        </tr>
+      `;
+    });
+    fileTableBody.innerHTML = html;
+
+    // attach remove events
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(btn.getAttribute('data-index'));
+        if (!isNaN(idx) && idx >= 0 && idx < selectedFiles.length) {
+          selectedFiles.splice(idx, 1);
+          renderFileTable();
+        }
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function truncateFilename(name, maxLen = 45) {
+    if (name.length <= maxLen) return name;
+    const extIndex = name.lastIndexOf('.');
+    if (extIndex === -1) return name.slice(0, maxLen-3) + '...';
+    const ext = name.slice(extIndex);
+    const base = name.slice(0, extIndex);
+    const available = maxLen - ext.length - 3;
+    if (available <= 0) return '...' + ext;
+    return base.slice(0, available) + '...' + ext;
+  }
+
+  // Update destination UI
+  function updateDestinationUI() {
+    if (directoryHandle) {
+      destinationIndicator.innerHTML = `✅ DESTINATION: 📁 ${escapeHtml(directoryHandle.name)}  (ready)`;
+      destinationIndicator.style.background = "#e0f2fe";
+    } else {
+      destinationIndicator.innerHTML = `⚠️ No destination selected — click "Select Destination"`;
+      destinationIndicator.style.background = "#f1f5f9";
+    }
+  }
+
+  // ----- File selection (multiple) -----
+  function triggerFileSelection() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '*/*';
+    input.onchange = (event) => {
+      const files = Array.from(event.target.files);
+      if (files.length) {
+        selectedFiles = files;   // replace previous selection
+        renderFileTable();
+      } else if (files.length === 0 && selectedFiles.length === 0) {
+        // do nothing
+      } else {
+        // keep old if no new files? but we replace intentionally (better UX)
+        // To be consistent: if empty selection, do nothing
+        if (files.length === 0) return;
+      }
+    };
+    input.click();
+  }
+
+  // ----- select destination using File System Access API -----
+  async function selectDestination() {
+    if (!window.showDirectoryPicker) {
+      alert('❌ Your browser does not support the File System Access API.\nPlease use recent Chrome, Edge, or Opera.\nFallback not available.');
+      return;
+    }
+    try {
+      const dirHandle = await window.showDirectoryPicker();
+      // verify permission (request read/write implicitly by picking)
+      directoryHandle = dirHandle;
+      updateDestinationUI();
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        console.log('User cancelled folder selection');
+      } else {
+        console.error('Error selecting directory:', err);
+        alert('⚠️ Could not access the selected directory. Please try again.');
+      }
+    }
+  }
+
+  // ----- Process: copy each file & rename with pattern -----
+  async function processFiles() {
+    // 1) validations
+    const startNumberRaw = startNumberInput.value.trim();
+    const incrementRaw = incrementValueInput.value.trim();
+    if (!startNumberRaw) {
+      alert('✗ Start Number is required.');
+      return;
+    }
+    if (!incrementRaw) {
+      alert('✗ Increment Value is required.');
+      return;
+    }
+    const startNum = parseInt(startNumberRaw, 10);
+    const incVal = parseInt(incrementRaw, 10);
+    if (isNaN(startNum) || isNaN(incVal)) {
+      alert('✗ Start Number and Increment Value must be valid integers.');
+      return;
+    }
+    if (incVal <= 0) {
+      alert('✗ Increment Value must be greater than 0.');
+      return;
+    }
+    if (startNum < 0) {
+      alert('✗ Start Number should be 0 or positive.');
+      return;
+    }
+    if (selectedFiles.length === 0) {
+      alert('✗ No files selected. Please choose at least one file.');
+      return;
+    }
+    if (!directoryHandle) {
+      alert('✗ Destination folder not selected. Click "Select Destination".');
+      return;
+    }
+
+    const prefix = prefixInput.value.trim();   // optional, can be empty
+    // Disable process button during operation
+    processBtn.disabled = true;
+    const originalBtnText = processBtn.innerText;
+    processBtn.innerText = '⏳ Processing... Please wait';
+
+    let successCount = 0;
+    let failureCount = 0;
+    const errorsList = [];
+
+    try {
+      // Iterate over files with index to compute incremental number
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const currentNumber = startNum + (i * incVal);
+        // extract original extension
+        let extension = '';
+        const originalName = file.name;
+        const lastDotIndex = originalName.lastIndexOf('.');
+        if (lastDotIndex !== -1 && lastDotIndex !== 0) {
+          extension = originalName.slice(lastDotIndex); // includes dot
+        }
+        // Build new filename: prefix + number + extension
+        let newBaseName = prefix + currentNumber + extension;
+        // sanitize illegal filesystem characters (cross-platform tolerance)
+        newBaseName = sanitizeFileName(newBaseName);
+        if (newBaseName.length === 0) newBaseName = `file_${currentNumber}${extension || ''}`;
+
+        try {
+          // Create or overwrite file in destination directory
+          const fileHandle = await directoryHandle.getFileHandle(newBaseName, { create: true });
+          const writable = await fileHandle.createWritable();
+          // write file content as blob
+          await writable.write(await file.arrayBuffer());
+          await writable.close();
+          successCount++;
+        } catch (err) {
+          failureCount++;
+          let errorMsg = `❌ ${file.name} → ${newBaseName} : ${err.message}`;
+          errorsList.push(errorMsg);
+          console.error(err);
+        }
+      }
+
+      // Final alert summary
+      let message = `✅ PROCESS FINISHED!\n\nSuccessfully copied & renamed: ${successCount} file(s).\nFailed: ${failureCount} file(s).`;
+      if (failureCount > 0 && errorsList.length > 0) {
+        message += `\n\nFirst error: ${errorsList[0]}`;
+      }
+      alert(message);
+    } catch (criticalErr) {
+      console.error(criticalErr);
+      alert(`⚠️ Unexpected fatal error: ${criticalErr.message}`);
+    } finally {
+      processBtn.disabled = false;
+      processBtn.innerText = originalBtnText;
+    }
+  }
+
+  // Sanitize filename: remove/replace invalid path chars
+  function sanitizeFileName(name) {
+    // Replace invalid characters for Windows/Linux/Mac (avoid directory traversal)
+    // eslint-disable-next-line no-useless-escape
+    const invalidChars = /[\\/:*?"<>|]/g;
+    let cleaned = name.replace(invalidChars, '_');
+    // also trim leading/trailing spaces and dots (windows issue)
+    cleaned = cleaned.replace(/^[.\s]+|[.\s]+$/g, '');
+    if (cleaned === '') cleaned = 'renamed_file';
+    return cleaned;
+  }
+
+  // Clear all files
+  function clearAllFiles() {
+    if (selectedFiles.length > 0) {
+      selectedFiles = [];
+      renderFileTable();
+    } else {
+      // already empty
+    }
+  }
+
+  // Additional realtime validation: disable process if requirements missing (optional, but buttons show feedback)
+  function validateRequirementsStatus() {
+    const hasFiles = selectedFiles.length > 0;
+    const hasDest = directoryHandle !== null;
+    const startValid = startNumberInput.value.trim() !== '' && !isNaN(parseInt(startNumberInput.value,10));
+    const incValid = incrementValueInput.value.trim() !== '' && !isNaN(parseInt(incrementValueInput.value,10));
+    if (!hasFiles || !hasDest || !startValid || !incValid) {
+      processBtn.style.opacity = '0.7';
+      processBtn.title = 'Missing: files, destination, or valid start/increment numbers';
+    } else {
+      processBtn.style.opacity = '1';
+      processBtn.title = 'Ready to copy & rename files';
+    }
+  }
+
+  // attach event listeners for UI dynamic validation
+  function bindValidationEvents() {
+    startNumberInput.addEventListener('input', validateRequirementsStatus);
+    incrementValueInput.addEventListener('input', validateRequirementsStatus);
+    // also listen for files changes and destination changes via global render triggers
+  }
+
+  function refreshValidation() {
+    validateRequirementsStatus();
+  }
+
+  // Override render to also validate after file changes
+  const originalRender = renderFileTable;
+  window.renderFileTable = function() {
+    originalRender();
+    refreshValidation();
+  };
+  renderFileTable = function() {
+    originalRender();
+    refreshValidation();
+  };
+
+  // Patch updateDestinationUI to call validation
+  const originalUpdateDest = updateDestinationUI;
+  updateDestinationUI = function() {
+    originalUpdateDest();
+    refreshValidation();
+  };
+  window.updateDestinationUI = updateDestinationUI;
+
+  // final event binding
+  function init() {
+    selectFilesBtn.addEventListener('click', triggerFileSelection);
+    selectDestinationBtn.addEventListener('click', selectDestination);
+    processBtn.addEventListener('click', processFiles);
+    clearAllFilesBtn.addEventListener('click', clearAllFiles);
+    
+    bindValidationEvents();
+    // initial render empty files
+    renderFileTable();
+    updateDestinationUI();
+    refreshValidation();
+
+    // add additional observer: if the directory handle is set via selectDestination, manual UI update handled.
+    // patch setter for directory handle
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'directoryHandle');
+    if (!descriptor || descriptor.configurable) {
+      let internalDirHandle = directoryHandle;
+      Object.defineProperty(window, 'directoryHandle', {
+        get: () => internalDirHandle,
+        set: (val) => {
+          internalDirHandle = val;
+          updateDestinationUI();
+          refreshValidation();
+        },
+        configurable: true
+      });
+    }
+    // sync initial directory handle value
+    window.directoryHandle = directoryHandle;
+  }
+
+  // overwrite selectedFiles setter pattern? simple: whenever we modify selectedFiles manually we call render & validation.
+  // we ensure that after any mutation of selectedFiles, renderFileTable is called (which triggers validation + UI).
+  // for clear and file select, we update selectedFiles and call render.
+  // That's already covered.
+  // extra guard: change prefix not needed for validation, but start/increment handled.
+  init();
+</script>
+</body>
+</html>
